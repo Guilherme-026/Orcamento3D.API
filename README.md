@@ -57,3 +57,19 @@ O **Orcamento3D.API** foi construído aplicando princípios de **Programação O
  ├── 📄 Program.cs                     # Pipeline da API e servidor de arquivos estáticos
  ├── 📄 Dockerfile                     # Multi-Stage Build (.NET 10 SDK -> ASP.NET Runtime)
  └── 📄 iniciar.vbs                    # Automação para abertura silenciosa em modo App
+```
+## ⚙️ Como Executar o Projeto
+Opção 1: Via Docker (Recomendado para Servidores / Avaliação)
+Na raiz do projeto, execute os comandos abaixo no terminal:
+```text
+# 1. Construir a imagem otimizada
+docker build -t orcamento3d-api .
+
+# 2. Subir o container em segundo plano na porta 8080
+docker run -d -p 8080:8080 --name orcamento-app orcamento3d-api
+```
+Opção 2: Gerando o Executável Nativo Ultraleve (Windows)
+Para gerar o pacote que roda sem necessidade do .NET SDK ou Docker instalados na máquina de destino:
+```text
+dotnet publish Orcamento3D.API/Orcamento3D.API.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+```
