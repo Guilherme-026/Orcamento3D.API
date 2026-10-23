@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento 3D - Sistema de Precificação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-6 font-sans text-slate-800">
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Cabeçalho -->
+    <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700">Estúdio de Impressão 3D</h1>
+            <p class="text-sm text-slate-500">Calculadora de Custos e Gerador de Propostas em PDF</p>
+        </div>
+        <span class="bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200">
+                Sistema Local Ativo
+            </span>
+    </header>
+
+    <!-- PASSO 1: Formulário de Entrada de Custos -->
+    <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">1. Dados da Peça e Insumos</h2>
+
+        <form id="formOrcamento" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dados da Peça -->
+            <!-- Dados da Peça -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Nome da Peça</label>
+                <input type="text" id="nome" value="Suporte de Celular" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Cor / Material do Filamento</label>
+                <input type="text" id="cor" value="Preto" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Peso com suporte a decimais exatos (ex: 72.01) -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Peso da Peça (gramas)</label>
+                <input type="number" step="0.01" id="pesoPorGrama" value="72.01" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Tempo separado em Horas e Minutos -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Tempo de Impressão (Horas e Minutos)</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex items-center space-x-1">
+                        <input type="number" id="tempoHoras" value="4" min="0" required
+                               class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <span class="text-xs text-slate-500 font-semibold">h</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <input type="number" id="tempoMinutos" value="23" min="0" max="59" required
+                               class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <span class="text-xs text-slate-500 font-semibold">min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dados do Filamento e Máquina -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Preço do Carretel (R$)</label>
+                <input type="number" step="0.01" id="precoCarretel" value="80.00" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Peso do Carretel (gramas)</label>
+                <input type="number" id="pesoTotalGramas" value="1000" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Modelo da Impressora</label>
+                <input type="text" id="modeloImpressora" value="Bambu Lab A1" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Custo Hora da Máquina (R$)</label>
+                <input type="number" step="0.01" id="custoPorHora" value="5.00" required
+                       class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <!-- Botão Passo 2 -->
+            <div class="md:col-span-2 pt-2">
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md cursor-pointer">
+                    Calcular Orçamento
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- PASSOS 3, 4 e 5: Resultados e Escolha do Ticket (Oculto até calcular) -->
+    <section id="painelResultados" class="hidden space-y-6">
+
+        <!-- Resumo de Custos Internos -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">2. Detalhamento Interno de Custos</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="p-3 bg-slate-50 rounded-lg border">
+                    <span class="text-xs text-slate-500 block">Custo / Grama</span>
+                    <strong id="resCustoGrama" class="text-lg text-slate-800">R$ 0,00</strong>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border">
+                    <span class="text-xs text-slate-500 block">Custo Material</span>
+                    <strong id="resCustoMaterial" class="text-lg text-slate-800">R$ 0,00</strong>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border">
+                    <span class="text-xs text-slate-500 block">Custo Máquina</span>
+                    <strong id="resCustoMaquina" class="text-lg text-slate-800">R$ 0,00</strong>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <span class="text-xs text-blue-700 font-semibold block">Custo Base Total</span>
+                    <strong id="resCustoTotal" class="text-lg text-blue-900">R$ 0,00</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escolha do Ticket para Gerar PDF Único -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-700 mb-1">3. Selecione a Faixa de Preço para Gerar o PDF do Cliente</h2>
+            <p class="text-xs text-slate-500 mb-4">O PDF sairá apenas com o valor escolhido abaixo, somando a diferença como Mão de Obra e Acabamento.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Card Low -->
+                <div class="border-2 border-emerald-200 bg-emerald-50/40 rounded-xl p-5 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded">Low-Ticket (+30%)</span>
+                        <p class="text-xs text-slate-500 mt-2">Ideal para lotes, peças simples ou clientes recorrentes.</p>
+                        <p id="resLow" class="text-3xl font-extrabold text-emerald-800 my-4">R$ 0,00</p>
+                    </div>
+                    <button onclick="gerarPdf('Low')"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition cursor-pointer">
+                        Baixar PDF (Low)
+                    </button>
+                </div>
+
+                <!-- Card Average -->
+                <div class="border-2 border-blue-500 bg-blue-50/50 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-blue-700 bg-blue-100 px-2.5 py-1 rounded">Average-Ticket (+50%)</span>
+                        <p class="text-xs text-slate-500 mt-2">Margem comercial padrão recomendada.</p>
+                        <p id="resAverage" class="text-3xl font-extrabold text-blue-900 my-4">R$ 0,00</p>
+                    </div>
+                    <button onclick="gerarPdf('Average')"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition cursor-pointer">
+                        Baixar PDF (Padrão)
+                    </button>
+                </div>
+
+                <!-- Card High -->
+                <div class="border-2 border-purple-200 bg-purple-50/40 rounded-xl p-5 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-purple-700 bg-purple-100 px-2.5 py-1 rounded">High-Ticket (+100%)</span>
+                        <p class="text-xs text-slate-500 mt-2">Peças complexas, acabamento fino ou urgência.</p>
+                        <p id="resHigh" class="text-3xl font-extrabold text-purple-900 my-4">R$ 0,00</p>
+                    </div>
+                    <button onclick="gerarPdf('High')"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg transition cursor-pointer">
+                        Baixar PDF (Premium)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function coletarDadosFormulario(ticketEscolhido = null) {
+        return {
+            nome: document.getElementById('nome').value,
+            cor: document.getElementById('cor').value,
+            pesoPorGrama: parseFloat(document.getElementById('pesoPorGrama').value),
+            tempoImpressaoHoras: parseInt(document.getElementById('tempoHoras').value) || 0,
+            tempoImpressaoMinutos: parseInt(document.getElementById('tempoMinutos').value) || 0,
+            precoCarretel: parseFloat(document.getElementById('precoCarretel').value),
+            pesoTotalGramas: parseFloat(document.getElementById('pesoTotalGramas').value),
+            modeloImpressora: document.getElementById('modeloImpressora').value,
+            custoPorHora: parseFloat(document.getElementById('custoPorHora').value),
+            ticketEscolhido: ticketEscolhido
+        };
+    }
+
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // PASSOS 2 e 3: Envia dados para calcular e exibe os 3 Tiers na tela
+    document.getElementById('formOrcamento').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = coletarDadosFormulario();
+
+        const resposta = await fetch('/api/Orcamentos/calcular-orcamento', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resposta.ok) {
+            alert('Erro ao calcular o orçamento na API.');
+            return;
+        }
+
+        const dados = await resposta.json();
+
+        document.getElementById('resCustoGrama').innerText = formatarMoeda(dados.custoPorGrama);
+        document.getElementById('resCustoMaterial').innerText = formatarMoeda(dados.custoMaterial);
+        document.getElementById('resCustoMaquina').innerText = formatarMoeda(dados.custoImpressora);
+        document.getElementById('resCustoTotal').innerText = formatarMoeda(dados.custoTotal);
+
+        document.getElementById('resLow').innerText = formatarMoeda(dados.lowTicket);
+        document.getElementById('resAverage').innerText = formatarMoeda(dados.averageTicket);
+        document.getElementById('resHigh').innerText = formatarMoeda(dados.highTicket);
+
+        document.getElementById('painelResultados').classList.remove('hidden');
+    });
+
+    // PASSOS 4 e 5: Envia o Ticket escolhido e baixa o PDF com valor único
+    async function gerarPdf(ticket) {
+        const payload = coletarDadosFormulario(ticket);
+
+        const resposta = await fetch('/api/Orcamentos/gerar-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resposta.ok) {
+            alert('Erro ao gerar o PDF.');
+            return;
+        }
+
+        const blob = await resposta.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Orcamento-${payload.nome}-${ticket}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+</body>
+</html>

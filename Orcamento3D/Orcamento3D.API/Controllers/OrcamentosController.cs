@@ -32,43 +32,58 @@ public class OrcamentosController : ControllerBase
     {
         var filamento = new Filamento(dados.Cor, dados.PrecoCarretel, dados.PesoTotalGramas);
         var impressora = new Impressora(dados.ModeloImpressora, dados.CustoPorHora);
-        var peca3d = new Peca3D(dados.Nome, dados.PesoPorGrama, dados.TempoImpressaoHora);
+        
+        // Converte as horas e minutos vindos da tela em horas decimais para a sua regra de negócio
+        double tempoTotalEmHoras = dados.TempoImpressaoHoras + (dados.TempoImpressaoMinutos / 60.0);
+        var peca3d = new Peca3D(dados.Nome, dados.PesoPorGrama, tempoTotalEmHoras);
+        
 
         var orcamento = new Orcamento(peca3d, filamento, impressora);
 
-        var resposta = new
+        return Ok(new
         {
-            Item = peca3d.Nome,
-            CustoPorGramaFilamento = filamento.CalcularCustoPorGrama(),
-            CustoMaterial = orcamento.CustoMaterial(),
-            CustoMaquina = orcamento.CustoImpressora(),
-            CustoTotalProducao = orcamento.CustoTotal(),
-            SugestaoDeVenda = new
-            {
-                LowTicket = orcamento.LowTicketOrcamento(),
-                AverageTicket = orcamento.AverageTicketOrcamento(),
-                HighTicket = orcamento.HighTicketOrcamento()
-            }
-        };
+            custoPorGrama = filamento.CalcularCustoPorGrama(),
+            custoMaterial = orcamento.CustoMaterial(),
+            custoImpressora = orcamento.CustoImpressora(),
+            custoTotal = orcamento.CustoTotal(),
+            lowTicket = orcamento.LowTicketOrcamento(),
+            averageTicket = orcamento.AverageTicketOrcamento(),
+            highTicket = orcamento.HighTicketOrcamento()
+        });
+    }
+    
+    
+    [HttpPost("gerar-pdf")]
+    public IActionResult GerarPdfOrcamento([FromBody] DadosCalculoDto dados)
+    {
+        var filamento = new Filamento(dados.Cor, dados.PrecoCarretel, dados.PesoTotalGramas);
+        var impressora = new Impressora(dados.ModeloImpressora, dados.CustoPorHora);
+            
+        // Converte as horas e minutos vindos da tela em horas decimais para a sua regra de negócio
+        double tempoTotalEmHoras = dados.TempoImpressaoHoras + (dados.TempoImpressaoMinutos / 60.0);
+        var peca3d = new Peca3D(dados.Nome, dados.PesoPorGrama, tempoTotalEmHoras);
 
-        return Ok(resposta);
+        var orcamento = new Orcamento(peca3d, filamento, impressora);
+
+        // Gera os bytes do arquivo PDF
+        byte[] arquivoPdf = orcamento.GerarPdf(dados.TicketEscolhido ?? "Average");
+
+        // Retorna o arquivo PDF para download com Status 200 OK!
+        return File(arquivoPdf, "application/pdf", $"Orcamento-{peca3d.Nome}.pdf");
     }
 
 
     public class DadosCalculoDto
     {
-        // informações da classe Filamento
+        public string Nome { get; set; } = string.Empty;
         public string Cor { get; set; } = string.Empty;
+        public double PesoPorGrama { get; set; } // Aceita 72.01
+        public int TempoImpressaoHoras { get; set; } // Ex: 4 horas
+        public int TempoImpressaoMinutos { get; set; } // Ex: 23 minutos
         public decimal PrecoCarretel { get; set; }
         public double PesoTotalGramas { get; set; }
-        
-        // informações da classe Impressora
         public string ModeloImpressora { get; set; } = string.Empty;
         public decimal CustoPorHora { get; set; }
-        
-        // informações da classe Peca3D
-        public string Nome { get; set; } = string.Empty;
-        public double PesoPorGrama { get; set; }
-        public double TempoImpressaoHora { get; set; }
+        public string? TicketEscolhido { get; set; }
     }
 }
